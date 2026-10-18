@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Budsjettboka</title>
+<title>BUDSJETT OG REGNSKAP</title>
 <meta name="description" content="Budsjett med daglig registrering, gjentakende poster og resultat mot budsjett.">
 <meta name="theme-color" content="#FAF6EE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1E1712" media="(prefers-color-scheme: dark)">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Budsjett">
+<meta name="apple-mobile-web-app-title" content="Budsjett og regnskap">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -30,12 +30,14 @@ html{-webkit-text-size-adjust:100%}
   --bg:#FAF6EE; --surface:#FFFDF9; --surface2:#F3EADB; --input-bg:#FBF7EF;
   --ink:#3B2A1E; --muted:#7D6859; --line:#E3D7C4;
   --accent:#7A4E2D; --accent-ink:#FFF8EE; --bad:#BA3419; --good:#5E7B3E;
+  --peach:#FFD5B8; --peach-ink:#5A3320;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#1E1712; --surface:#28201A; --surface2:#32281F; --input-bg:#221B15;
     --ink:#F1E6D6; --muted:#AE9B86; --line:#45382C;
     --accent:#D6A476; --accent-ink:#2A1B0F; --bad:#FF8A6B; --good:#A9C77F;
+    --peach:#5C3B29; --peach-ink:#FFDFC8;
     color-scheme:dark;
   }
 }
@@ -43,10 +45,11 @@ html{-webkit-text-size-adjust:100%}
   --bg:#1E1712; --surface:#28201A; --surface2:#32281F; --input-bg:#221B15;
   --ink:#F1E6D6; --muted:#AE9B86; --line:#45382C;
   --accent:#D6A476; --accent-ink:#2A1B0F; --bad:#FF8A6B; --good:#A9C77F;
+  --peach:#5C3B29; --peach-ink:#FFDFC8;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body);
   padding-block:20px 56px;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -56,6 +59,8 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+.belt{display:block;width:100%;margin:0 0 14px;padding:12px 14px;border:0;border-radius:14px;background:var(--peach);color:var(--peach-ink);text-align:center;font:800 16px/1.2 var(--f-display);letter-spacing:.09em}
+.belt:active{filter:brightness(.96)}
 .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
 h1{font:700 26px/1.1 var(--f-display);letter-spacing:-.01em;margin:0}
 .brand{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -68,8 +73,8 @@ h1{font:700 26px/1.1 var(--f-display);letter-spacing:-.01em;margin:0}
 .yearnav button:hover{color:var(--ink)}
 #yearLbl{font:600 17px var(--f-num);min-width:56px;text-align:center}
 
-.tabs{display:flex;gap:2px;margin:16px 0 14px;border-bottom:1px solid var(--line);overflow-x:auto}
-.tabs button{border:0;background:none;padding:10px 14px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tabs{display:flex;gap:0;justify-content:space-between;margin:12px 0 14px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:0;background:none;padding:10px 7px;flex:1 1 auto;font-size:13.5px;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
 .tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
 
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;min-height:40px}
@@ -88,21 +93,26 @@ h1{font:700 26px/1.1 var(--f-display);letter-spacing:-.01em;margin:0}
 .seg button{border:0;background:none;padding:8px 14px;min-height:40px;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
-.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;min-height:38px;color:var(--muted);flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;min-height:34px;color:var(--muted);flex:none}
 .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 h2.mt{font:700 20px/1.2 var(--f-display);margin:10px 0 10px}
 
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .stat:last-child{grid-column:1/-1}
 @media (min-width:720px){.stats{grid-template-columns:repeat(5,minmax(0,1fr))}.stat:last-child{grid-column:auto}}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
 .sl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.sv{font:500 18px var(--f-num);font-variant-numeric:tabular-nums;margin-top:2px;overflow-wrap:anywhere}
+.sv{font:500 17px var(--f-num);font-variant-numeric:tabular-nums;margin-top:2px;overflow-wrap:anywhere}
 .ss{font:12px var(--f-num);color:var(--muted);font-variant-numeric:tabular-nums}
 .neg{color:var(--bad)}
 
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.rest{margin-top:2px}
+.lnk{border:0;background:none;padding:2px 0;min-height:28px;font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px;text-align:left}
+.rest .ask{font-size:12px}
+.rest .ask .btn{min-height:30px;padding:3px 10px}
+.tools .btn{font-size:13px;padding:6px 10px;min-height:36px}
 .lead{color:var(--muted);margin:0 0 14px;max-width:64ch}
 h3.gl{font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
 
@@ -110,8 +120,8 @@ h3.gl{font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;
 .colhead{padding:0 13px 6px;font-size:12px;color:var(--muted);text-align:right}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
 .cathead{padding:10px 12px 6px;background:var(--surface2)}
-.tg{display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;text-align:left;font-weight:600;min-width:0;min-height:32px}
-.tg .nmt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tg{display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;text-align:left;font-weight:600;min-width:0;min-height:32px;line-height:1.25}
+.tg .nmt{overflow-wrap:anywhere;white-space:normal}
 .chev{flex:none;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;color:var(--muted)}
 .chev::before{content:"";border:solid currentColor;border-width:0 2px 2px 0;padding:3px;transform:rotate(45deg) translate(-1px,-1px)}
 .tg[aria-expanded="false"] .chev::before{transform:rotate(-45deg)}
@@ -121,35 +131,36 @@ h3.gl{font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;
 .barwrap i.over{background:var(--bad)}
 .row{padding:8px 12px;border-top:1px solid var(--line)}
 .rn{min-width:0}
-.sname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 4px;margin-left:6px;vertical-align:middle}
+.sname{overflow-wrap:anywhere;white-space:normal}
+.tag{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 4px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .dev{font-size:12px;color:var(--muted)}
 .dev.bad{color:var(--bad)}
 .dev.good{color:var(--good)}
 .empty{padding:10px 12px;color:var(--muted);font-size:14px}
 .card.empty{background:var(--surface);border:1px solid var(--line);border-radius:10px}
 
-.n{width:100%;min-width:60px;text-align:right;font:400 14px var(--f-num);font-variant-numeric:tabular-nums;background:transparent;border:1px solid transparent;border-radius:6px;padding:7px 8px;color:inherit}
+.n{width:100%;min-width:60px;text-align:right;font:400 14px var(--f-num);font-variant-numeric:tabular-nums;background:transparent;border:1px solid transparent;border-radius:6px;padding:7px 6px;color:inherit}
 .n::placeholder{color:var(--muted);opacity:.6}
 .row .n{border-color:var(--line);background:var(--input-bg)}
 .n:hover{border-color:var(--line)}
 .n:focus{outline:2px solid var(--accent);outline-offset:0;background:var(--input-bg)}
 @media (pointer:coarse){.n,.txt,select,.txf input{font-size:16px}}
 
-.hint{color:var(--muted);font-size:13px;margin:0 0 10px;max-width:70ch}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 10px;max-width:70ch}
 .tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1060px}
-th,td{padding:2px 4px;border-top:1px solid var(--line);text-align:right;white-space:nowrap;font-weight:400}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px}
+th,td{padding:2px 3px;border-top:1px solid var(--line);text-align:right;white-space:nowrap;font-weight:400}
 thead th{border-top:0;font-size:12px;color:var(--muted);padding:9px 6px;font-weight:500}
-.stick{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;min-width:158px;max-width:158px;padding-left:12px;border-right:1px solid var(--line)}
-.sname.in{max-width:140px}
+.stick{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left;white-space:normal;line-height:1.25;min-width:140px;max-width:140px;padding:6px 8px 6px 12px;border-right:1px solid var(--line)}
+.sname.in{max-width:none;font-size:13px}
 tr.grp th,tr.grp td{background:var(--bg);color:var(--muted);font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;padding:8px 12px}
 tr.grp .stick{background:var(--bg)}
 tr.cat th,tr.cat td{background:var(--surface2)}
 tr.cat td{font:500 13px var(--f-num);padding:8px 10px;font-variant-numeric:tabular-nums}
 tr.cat .tg{width:100%}
 td.rc{font:400 13px var(--f-num);padding:7px 10px;font-variant-numeric:tabular-nums}
-td.sum,th.sum{border-left:1px solid var(--line);min-width:96px}
+td.sum,th.sum{border-left:1px solid var(--line);min-width:104px}
+td .n{min-width:84px}
 tr.tot td,tr.tot th{font:500 13px var(--f-num);padding:9px 10px;background:var(--surface)}
 tr.tot th{font-family:var(--f-body);font-weight:600}
 tr.tot.net td,tr.tot.net th{border-top:2px solid var(--ink)}
@@ -168,8 +179,8 @@ tr.tot.net td,tr.tot.net th{border-top:2px solid var(--ink)}
 .dh .dt{font:400 12px var(--f-num);color:var(--muted);white-space:nowrap}
 .txl>:first-child{border-top:0}
 .tx{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}
-.ts{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tn{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts{overflow-wrap:anywhere}
+.tn{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .ta{font:500 14px var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
 .ta.inc{color:var(--good)}
 .txe{padding:8px 12px 0;border-top:1px solid var(--line)}
@@ -180,10 +191,11 @@ tr.tot.net td,tr.tot.net th{border-top:2px solid var(--ink)}
 .chead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
 .chead .txt{flex:1 1 160px;width:auto;font:600 16px var(--f-display)}
 .subs{list-style:none;margin:10px 0 0;padding:0}
-.subrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:7px 0;border-top:1px solid var(--line)}
-.subrow .txt{flex:1 1 170px;width:auto}
-.subrow select{flex:0 1 160px;width:auto;border:1px solid var(--line);background:var(--input-bg);border-radius:8px;padding:8px;min-height:40px;min-width:0}
-.ctrl{display:flex;align-items:center;gap:2px;flex:none;margin-left:auto}
+.subrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 0;border-top:1px solid var(--line)}
+.subrow .txt{flex:1 1 150px;width:auto;order:0}
+.subrow .ctrl{order:1}
+.subrow select{order:2;flex:1 1 130px;width:auto;border:1px solid var(--line);background:var(--input-bg);border-radius:8px;padding:8px;min-height:40px;min-width:0}
+.ctrl{display:flex;align-items:center;gap:0;flex:none;margin-left:auto}
 .addsub{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .addsub .txt{flex:1 1 180px;width:auto}
 .add{width:100%;border-style:dashed;color:var(--muted)}
@@ -213,9 +225,9 @@ tr.tot.net td,tr.tot.net th{border-top:2px solid var(--ink)}
 </head>
 <body>
 <div class="app" id="app">
+  <button class="belt" data-act="tab" data-tab="reg" aria-label="BUDSJETT OG REGNSKAP – tilbake til Registrer">BUDSJETT OG REGNSKAP</button>
   <header class="top">
     <div class="brand">
-      <h1>Budsjettboka</h1>
       <span class="save" id="save" role="status"></span>
     </div>
     <div class="yearnav" id="yearnav" role="group" aria-label="Velg år">
@@ -260,20 +272,22 @@ function defaults(){
   // [navn, type, [[underkategori, kind, månedsbudsjett]]]
   const D='drift',I='invest';
   const spec=[
-    ['Inntekt','inc',[['Lønn',D,50000],['Annen inntekt',D,0]]],
-    ['Mat og drikke','exp',[['Dagligvarer',D,7000],['Restaurant og kafé',D,2000],['Lunsj og kantine',D,1000]]],
-    ['Transport','exp',[['Hurtiglading',D,0],['Hjemmelading',D,0],['Kollektivtransport',D,0],['Bompenger og parkering',D,0],['Vedlikehold bil',D,0],['Dekk og utstyr',I,0]]],
-    ['Bolig','exp',[['Renter',D,5000],['Avdrag',I,5000],['Strøm',D,0],['Forsikringer',D,0],['Vedlikehold',D,0],['Kluter, håndklær og svamper',D,0],['Oppussing',I,0],['Møbler og interiør',I,0]]],
-    ['Forsikringer','exp',[['Bil',D,0],['Reise',D,0],['Liv og helse',D,0]]],
+    ['Inntekt','inc',[]],
+    ['Mat og drikke','exp',[]],
+    ['Transport','exp',[['Hurtiglading',D,0],['Hjemmelading',D,0],['Dekk og utstyr',I,0]]],
+    ['Bolig','exp',[['Renter',D,0],['Avdrag',I,0],['Strøm',D,0],['Forsikringer',D,0],['Vedlikehold',D,0],['Husholdningsvarer',D,0],['Oppussing',I,0],['Møbler og interiør',I,0]]],
+    ['Forsikringer','exp',[]],
     ['Klær','exp',[['Formelt',D,0],['Pent',D,0],['Hverdag',D,0],['Fritid/trening',D,0]]],
     ['Sko','exp',[['Formelt',D,0],['Pent',D,0],['Hverdag',D,0],['Fritid/trening',D,0]]],
     ['Helse','exp',[['Tannlegetime',D,0],['Legetime',D,0],['Medisiner',D,0],['Medisinske forbruksvarer',D,0],['Hygiene og egenpleie',D,0]]],
     ['Fritid og kultur','exp',[['Bøker',D,0]]],
+    ['Friluftsliv','exp',[]],
+    ['Kompetanse','exp',[]],
     ['Gaver','exp',[['Julegaver',D,0],['Bursdagsgaver',D,0],['Andre gaver',D,0],['Lommepenger',D,0]]],
-    ['Utstyr','exp',[['Elektronikk',I,0],['Verktøy',I,0],['Friluftsliv',I,0],['Vesker og bager',I,0],['Håndarbeidsutstyr',I,0],['Garn, tråd og stoff',D,0],['Annet utstyr',I,0]]],
+    ['Utstyr','exp',[['Vesker og bager',I,0],['Håndarbeidsutstyr',I,0],['Garn, tråd og stoff',D,0]]],
     ['Sparing','sav',[['Bufferkonto',D,0],['Pensjonssparing',D,0],['Feriekonto',D,0]]]
   ];
-  const st={v:2,mig:14,year:2027,cats:[],data:{'2027':{}},tx:[],rec:[]};
+  const st={v:2,mig:20,year:2027,cats:[],data:{'2027':{}},tx:[],rec:[]};
   spec.forEach(([name,type,subs])=>{
     st.cats.push({id:uid(),name,type,subs:subs.map(([n,kind,b])=>{
       const id=uid();if(b)st.data['2027'][id]={b:flat(b)};return{id,name:n,kind};
@@ -429,6 +443,62 @@ function norm(st){
       const i=u.subs.findIndex(s=>s.name==='Annet utstyr');
       u.subs.splice(i<0?u.subs.length:i,0,...add);
     }
+  }
+  if(st.mig<15){
+    // Engangsmigrering: hovedkategorien Kompetanse
+    st.mig=15;
+    if(!st.cats.some(c=>c.name==='Kompetanse')){
+      const kc={id:uid(),name:'Kompetanse',type:'exp',subs:[['Kurs og opplæring','invest'],['Fagbøker og læremidler','drift'],['Abonnement og verktøy','drift']].map(([name,kind])=>({id:uid(),name,kind}))};
+      let at=st.cats.findIndex(c=>c.type==='exp'&&c.name==='Gaver');
+      if(at<0)at=st.cats.findIndex(c=>c.type==='exp'&&c.name==='Utstyr');
+      if(at<0)at=st.cats.findIndex(c=>c.type==='sav');
+      if(at>=0)st.cats.splice(at,0,kc);else st.cats.push(kc);
+    }
+  }
+  if(st.mig<16){
+    // Friluftsliv blir egen hovedkategori. Utstyr › Friluftsliv flyttes hit som «Utstyr» (samme id, så budsjett og poster følger med)
+    st.mig=16;
+    if(!st.cats.some(c=>c.type==='exp'&&c.name==='Friluftsliv')){
+      const u=st.cats.find(c=>c.type==='exp'&&c.name==='Utstyr');
+      let moved=null;
+      if(u){ const i=u.subs.findIndex(s=>s.name==='Friluftsliv'); if(i>=0){ moved=u.subs.splice(i,1)[0]; moved.name='Utstyr'; moved.kind='invest'; } }
+      if(!moved)moved={id:uid(),name:'Utstyr',kind:'invest'};
+      const fc={id:uid(),name:'Friluftsliv',type:'exp',subs:[{id:uid(),name:'Medlemskap og kontingent',kind:'drift'},{id:uid(),name:'Kurs og opplæring',kind:'invest'},moved]};
+      let at=st.cats.findIndex(c=>c.type==='exp'&&c.name==='Kompetanse');
+      if(at<0)at=st.cats.findIndex(c=>c.type==='exp'&&c.name==='Gaver');
+      if(at<0)at=st.cats.findIndex(c=>c.type==='sav');
+      if(at>=0)st.cats.splice(at,0,fc);else st.cats.push(fc);
+    }
+  }
+  if(st.mig<17){
+    // Engangsmigrering: nullstill de opprinnelige eksempelbeløpene (bare hvis de er urørt)
+    st.mig=17;
+    const ex={'Lønn':50000,'Dagligvarer':7000,'Restaurant og kafé':2000,'Lunsj og kantine':1000,'Renter':5000,'Avdrag':5000};
+    Object.keys(st.data).forEach(y=>{
+      st.cats.forEach(c=>c.subs.forEach(sb=>{
+        const e=ex[sb.name],row=st.data[y][sb.id];
+        if(e&&row&&row.b.every(v=>v===e))row.b=row.b.map(()=>0);
+      }));
+    });
+  }
+  if(st.mig<18){
+    // Engangsmigrering: fjern underkategorier som ikke ble bestilt (bare hvis de er ubrukte)
+    st.mig=18;
+    const inUse=id=>st.tx.some(t=>t.sub===id)||st.rec.some(r=>r.sub===id)||Object.keys(st.data).some(y=>st.data[y][id]&&st.data[y][id].b.some(v=>v));
+    const drop={'Inntekt':['Lønn','Annen inntekt'],'Mat og drikke':['Dagligvarer','Restaurant og kafé','Lunsj og kantine'],'Transport':['Kollektivtransport','Bompenger og parkering','Vedlikehold bil'],'Forsikringer':['Bil','Reise','Liv og helse'],'Utstyr':['Elektronikk','Verktøy','Annet utstyr']};
+    st.cats.forEach(c=>{const d=drop[c.name];if(d)c.subs=c.subs.filter(sb=>!d.includes(sb.name)||inUse(sb.id));});
+  }
+  if(st.mig<19){
+    // Engangsmigrering: fjern foreslåtte underkategorier under Friluftsliv og Kompetanse (bare hvis ubrukte)
+    st.mig=19;
+    const inUse=id=>st.tx.some(t=>t.sub===id)||st.rec.some(r=>r.sub===id)||Object.keys(st.data).some(y=>st.data[y][id]&&st.data[y][id].b.some(v=>v));
+    const drop={'Friluftsliv':['Medlemskap og kontingent','Kurs og opplæring','Utstyr'],'Kompetanse':['Kurs og opplæring','Fagbøker og læremidler','Abonnement og verktøy']};
+    st.cats.forEach(c=>{const d=drop[c.name];if(d)c.subs=c.subs.filter(sb=>!d.includes(sb.name)||inUse(sb.id));});
+  }
+  if(st.mig<20){
+    // Engangsmigrering: «Kluter, håndklær og svamper» heter nå «Husholdningsvarer» (drift)
+    st.mig=20;
+    st.cats.forEach(c=>c.subs.forEach(sb=>{if(sb.name==='Kluter, håndklær og svamper'){sb.name='Husholdningsvarer';sb.kind='drift';}}));
   }
   return st;
 }
@@ -824,7 +894,6 @@ function viewMonth(){
   o+=`<h2 class="mt">${MONTHS[m]} ${S.year}</h2>${stats('m')}${fcWrap('m')}`;
   const tools=[];
   if(m>0)tools.push(askBtn('cp','Kopier budsjett fra '+MONTHS[m-1].toLowerCase(),'Overskrive budsjettet for '+MONTHS[m].toLowerCase()+'?','copyprev'));
-  if(m<11)tools.push(askBtn('rest','Bruk dette budsjettet ut året','Overskrive '+MS[m+1]+' til Des?','applyrest'));
   if(tools.length)o+=`<div class="tools">${tools.join('')}</div>`;
   o+=`<div class="colhead"><span></span><span>Budsjett</span><span>Resultat</span></div>`;
   [['inc','Inntekter'],['exp','Utgifter'],['sav','Sparing']].forEach(([type,label])=>{
@@ -836,7 +905,7 @@ function viewMonth(){
       if(open){
         if(!c.subs.length)o+=`<div class="empty">Ingen underkategorier ennå. Legg dem til under Kategorier.</div>`;
         c.subs.forEach(s=>{
-          o+=`<div class="row"><div class="rn"><div class="sname">${esc(s.name)}${c.type==='exp'?kindTag(s):''}</div><div class="dev" data-dev="${s.id}"></div></div>`+
+          o+=`<div class="row"><div class="rn"><div class="sname">${esc(s.name)}${c.type==='exp'?kindTag(s):''}</div><div class="dev" data-dev="${s.id}"></div>${m<11?`<div class="rest">${askBtn('rest:'+s.id,'Bruk ut året','Overskrive '+MS[m+1]+' til Des?','applyrestsub','data-sub="'+s.id+'"','lnk')}</div>`:''}</div>`+
           `<input class="n" inputmode="decimal" autocomplete="off" placeholder="0" data-act="cell" data-l="b" data-m="${m}" data-sub="${s.id}" aria-label="${esc(s.name)}, ${MONTHS[m].toLowerCase()}, budsjett" value="${disp(val(S.year,s.id,'b',m))}">`+
           `<span class="num" data-t="sm:${s.id}:a:${m}"></span></div>`;
         });
@@ -903,7 +972,7 @@ async function saveBackup(){
   try{
     const file=new File([text],name,{type:'application/json'});
     if(navigator.canShare&&navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:'Budsjettboka sikkerhetskopi'});
+      await navigator.share({files:[file],title:'Sikkerhetskopi av Budsjett og regnskap'});
       ui.backupMsg='Sikkerhetskopi delt.';ui.backupErr=false;render();return;
     }
   }catch(e){if(e&&e.name==='AbortError')return;}
@@ -920,7 +989,7 @@ async function copyBackup(){
 function startImport(text){
   let st=null;
   try{const o=JSON.parse(text);st=norm(o&&o.state?o.state:o);}catch(e){st=null;}
-  if(!st){ui.backupMsg='Filen ser ikke ut som en sikkerhetskopi fra Budsjettboka.';ui.backupErr=true;ui.importState=null;}
+  if(!st){ui.backupMsg='Filen ser ikke ut som en sikkerhetskopi fra Budsjett og regnskap.';ui.backupErr=true;ui.importState=null;}
   else{ui.importState=st;ui.backupMsg='';}
   render();
 }
@@ -1020,6 +1089,11 @@ root.addEventListener('click',e=>{
     }
     case 'copyprev':{
       const m=ui.month;S.cats.forEach(c=>c.subs.forEach(s=>{cell(S.year,s.id).b[m]=val(S.year,s.id,'b',m-1);}));
+      ui.confirm=null;render();touch();break;
+    }
+    case 'applyrestsub':{
+      const m=ui.month,cl=cell(S.year,d.sub),v=val(S.year,d.sub,'b',m);
+      for(let k=m+1;k<12;k++)cl.b[k]=v;
       ui.confirm=null;render();touch();break;
     }
     case 'applyrest':{
