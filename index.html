@@ -109,12 +109,33 @@ h2.mt{font:700 20px/1.2 var(--f-display);margin:10px 0 10px}
 
 .tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
 .rest{margin-top:2px}
+.catlink{padding:2px 12px 8px;border-top:1px solid var(--line)}
+.catsel{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;min-height:44px;font:800 18px var(--f-display);color:var(--ink)}
+.catsum{padding:12px}
+.cs-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-end}
+.cs-r{text-align:right}
+.cs-t{margin-top:10px;border-top:1px solid var(--line)}
+.cs-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;align-items:baseline}
+.cs-row:last-child{border-bottom:0}
+.cs-n{overflow-wrap:anywhere}
+.cs-hd{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cs-hd .cs-v{font:400 11px var(--f-body)}
+.cs-v{font:500 13.5px var(--f-num);font-variant-numeric:tabular-nums;text-align:right;min-width:70px}
+.cs-b{font:400 12.5px var(--f-num);font-variant-numeric:tabular-nums;color:var(--muted);text-align:right;min-width:70px}
+.ct{display:grid;grid-template-columns:44px minmax(0,1fr) auto 78px;gap:8px;padding:8px 12px;border-top:1px solid var(--line);font-size:13.5px;align-items:baseline}
+.dh+.ct{border-top:0}
+.cd{color:var(--muted);font:12.5px var(--f-num)}
+.cn{overflow-wrap:anywhere}
+.mut{color:var(--muted)}
+.ca,.cr{font:500 13.5px var(--f-num);font-variant-numeric:tabular-nums;text-align:right}
+.cr{color:var(--muted);font-weight:400}
 .lnk{border:0;background:none;padding:2px 0;min-height:28px;font-size:12px;color:var(--accent);text-decoration:underline;text-underline-offset:2px;text-align:left}
 .rest .ask{font-size:12px}
 .rest .ask .btn{min-height:30px;padding:3px 10px}
 .tools .btn{font-size:13px;padding:6px 10px;min-height:36px}
 .lead{color:var(--muted);margin:0 0 14px;max-width:64ch}
-h3.gl{font:600 12px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.lead.sm{font-size:12px;line-height:1.4;margin:0 0 10px}
+h3.gl{font:700 12px var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:20px 0 8px}
 
 .colhead,.row,.cathead{display:grid;grid-template-columns:minmax(0,1fr) var(--w) var(--w);gap:8px;align-items:center}
 .colhead{padding:0 13px 6px;font-size:12px;color:var(--muted);text-align:right}
@@ -187,16 +208,17 @@ tr.tot.net td,tr.tot.net th{border-top:2px solid var(--ink)}
 .txe .txf{margin:0 0 10px}
 
 .cg{margin-bottom:8px}
-.ccard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:12px}
-.chead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
-.chead .txt{flex:1 1 160px;width:auto;font:600 16px var(--f-display)}
-.subs{list-style:none;margin:10px 0 0;padding:0}
+.ccard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:14px;overflow:hidden}
+.chead{display:flex;flex-wrap:nowrap;align-items:center;gap:6px 8px;padding:12px;background:var(--surface2);border-bottom:2px solid var(--accent)}
+.chead .txt{flex:1 1 160px;width:auto;min-height:44px;font:800 20px/1.2 var(--f-display);letter-spacing:-.005em;background:var(--surface);border-color:transparent}
+.subs{list-style:none;margin:0;padding:2px 12px 0}
 .subrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 0;border-top:1px solid var(--line)}
-.subrow .txt{flex:1 1 150px;width:auto;order:0}
+.subrow:first-child{border-top:0}
+.subrow .txt{flex:1 1 150px;width:auto;order:0;font-size:14px;font-weight:500;min-height:38px}
 .subrow .ctrl{order:1}
-.subrow select{order:2;flex:1 1 130px;width:auto;border:1px solid var(--line);background:var(--input-bg);border-radius:8px;padding:8px;min-height:40px;min-width:0}
+.subrow select{order:2;flex:0 1 150px;width:auto;font-size:13px;border:1px solid var(--line);background:var(--input-bg);border-radius:8px;padding:8px;min-height:40px;min-width:0}
 .ctrl{display:flex;align-items:center;gap:0;flex:none;margin-left:auto}
-.addsub{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.addsub{display:flex;gap:8px;padding:10px 12px 12px;border-top:1px solid var(--line);flex-wrap:wrap}
 .addsub .txt{flex:1 1 180px;width:auto}
 .add{width:100%;border-style:dashed;color:var(--muted)}
 .fc{padding:12px 12px 8px;margin-bottom:14px}
@@ -508,7 +530,7 @@ function loadLocal(){
   return null;
 }
 let S=loadLocal()||defaults();
-const ui={tab:'reg',month:0,layer:'b',collapsed:{},confirm:null,focus:null,editTx:null,editRec:null,importState:null,backupMsg:'',backupErr:false,lastSub:null,lastDate:null,toast:''};
+const ui={tab:'reg',catId:null,month:0,layer:'b',collapsed:{},confirm:null,focus:null,editTx:null,editRec:null,importState:null,backupMsg:'',backupErr:false,lastSub:null,lastDate:null,toast:''};
 const defMonth=()=>{const n=new Date();return n.getFullYear()===S.year?n.getMonth():0;};
 ui.month=defMonth();
 
@@ -909,6 +931,7 @@ function viewMonth(){
           `<input class="n" inputmode="decimal" autocomplete="off" placeholder="0" data-act="cell" data-l="b" data-m="${m}" data-sub="${s.id}" aria-label="${esc(s.name)}, ${MONTHS[m].toLowerCase()}, budsjett" value="${disp(val(S.year,s.id,'b',m))}">`+
           `<span class="num" data-t="sm:${s.id}:a:${m}"></span></div>`;
         });
+        o+=`<div class="catlink"><button class="lnk" data-act="opencat" data-id="${c.id}">Alle poster i ${esc(c.name)} ›</button></div>`;
       }
       o+=`</section>`;
     });
@@ -966,6 +989,44 @@ function viewYear(){
   o+=`<div class="tw"><table><thead><tr><th class="stick">${L==='b'?'Budsjett':'Resultat'} ${S.year}</th>${MS.map(n=>`<th>${n}</th>`).join('')}<th class="sum">Sum</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   return o;
 }
+function viewCat(){
+  if(!S.cats.length)return `<div class="card empty">Ingen kategorier ennå.</div>`;
+  let c=catById(ui.catId);if(!c){c=S.cats[0];ui.catId=c.id;}
+  const y=S.year;
+  const sel=`<select class="catsel" data-act="catsel" aria-label="Velg hovedkategori">${S.cats.map(x=>`<option value="${x.id}"${x.id===c.id?' selected':''}>${esc(x.name)}</option>`).join('')}</select>`;
+  const word=c.type==='inc'?'Mottatt':c.type==='sav'?'Satt av':'Brukt';
+  const per=c.subs.map(sb=>{
+    const list=S.tx.filter(t=>t.sub===sb.id&&txYear(t)===y).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:(a.t||0)-(b.t||0));
+    const used=r2(list.reduce((q,t)=>q+(+t.amt||0),0));
+    return{sb,list,used,bud:sumRow(sb.id,'b')};
+  });
+  const tot=r2(per.reduce((q,x)=>q+x.used,0)),bud=r2(per.reduce((q,x)=>q+x.bud,0));
+  const over=c.type==='exp'&&tot>bud;
+  const n=per.reduce((q,x)=>q+x.list.length,0);
+  let o=`<div class="tools">${sel}</div>`+
+    `<section class="card catsum"><div class="cs-h"><div><div class="sl">${word} hittil i ${y}</div><div class="sv${over?' neg':''}">${fmt2.format(tot)} kr</div></div><div class="cs-r"><div class="sl">Budsjett ${y}</div><div class="sv2">${fmt2.format(bud)} kr</div></div></div>`;
+  if(per.length){
+    o+=`<div class="cs-t"><div class="cs-row cs-hd"><span>Underkategori</span><span class="cs-v">${word}</span><span class="cs-b">Budsjett</span></div>`+per.map(x=>{
+      const ov=c.type==='exp'&&x.used>x.bud;
+      return `<div class="cs-row"><span class="cs-n">${esc(x.sb.name)}${c.type==='exp'?kindTag(x.sb):''}</span><span class="cs-v${ov?' neg':''}">${fmt2.format(x.used)}</span><span class="cs-b">${fmt2.format(x.bud)}</span></div>`;
+    }).join('')+`</div>`;
+  }
+  o+=`</section>`;
+  if(!per.length)return o+`<div class="card empty">Ingen underkategorier ennå. Legg dem til under Kategorier.</div>`;
+  if(!n)o+=`<p class="lead sm">Ingen poster i ${esc(c.name)} i ${y} ennå.</p>`;
+  per.forEach(x=>{
+    if(!x.list.length)return;
+    let run=0;
+    o+=`<h3 class="gl">${esc(x.sb.name)}</h3><div class="txl">`+
+      `<div class="dh"><span>${x.list.length} ${x.list.length===1?'post':'poster'}</span><span class="dt">${word.toLowerCase()} ${fmt2.format(x.used)} kr</span></div>`+
+      x.list.map(t=>{
+        run=r2(run+(+t.amt||0));
+        return `<div class="ct"><span class="cd">${t.d.slice(8,10)}.${t.d.slice(5,7)}.</span><span class="cn">${t.note?esc(t.note):'<span class="mut">Uten notat</span>'}${t.rec?' · gjentakende':''}</span><span class="ca">${fmt2.format(t.amt)}</span><span class="cr">${fmt2.format(run)}</span></div>`;
+      }).join('')+`</div>`;
+  });
+  if(n)o+=`<p class="lead sm">Høyre kolonne viser summen hittil i året, post for post. Poster endrer du under Måned.</p>`;
+  return o;
+}
 function backupData(){return JSON.stringify({app:'budsjettboka',exported:new Date().toISOString(),state:S});}
 async function saveBackup(){
   const text=backupData(),name='budsjettboka-'+today()+'.json';
@@ -1009,12 +1070,11 @@ function viewCats(){
     const cats=S.cats.filter(c=>c.type===type);
     return `<section class="cg"><h3 class="gl">${title}</h3>${cats.map((c,i)=>catCard(c,i,cats.length)).join('')}<button class="btn add" data-act="addcat" data-type="${type}">+ ${addLabel}</button></section>`;
   };
-  return `<p class="lead">Endre navn og rekkefølge, eller legg til og fjern kategorier og underkategorier. Endringene gjelder alle år.</p>`+
-    `<p class="lead"><strong>Drift</strong> er løpende forbruk som mat, strøm og lån. <strong>Investering</strong> er anskaffelser som varer lenge eller bygger verdi, for eksempel utstyr, oppussing og møbler. Velg per underkategori. Begge teller med i «Til overs». <strong>Sparing</strong> er penger du setter av, og regnes verken som drift eller investering. Den trekkes også fra «Til overs».</p>`+
+  return `<p class="lead sm">Endre navn og rekkefølge, eller legg til og fjern kategorier og underkategorier. Endringene gjelder alle år.</p>`+
+    `<p class="lead sm"><strong>Drift</strong> er løpende forbruk som mat, strøm og lån. <strong>Investering</strong> er anskaffelser som varer lenge eller bygger verdi, for eksempel utstyr, oppussing og møbler. Velg per underkategori. Begge teller med i «Til overs». <strong>Sparing</strong> er penger du setter av, og regnes verken som drift eller investering. Den trekkes også fra «Til overs».</p>`+
     sec('exp','Utgifter','Ny hovedkategori')+sec('sav','Sparing','Ny sparekategori')+sec('inc','Inntekter','Ny inntektskategori')+backupHTML();
 }
 function catCard(c,i,n){
-  const opts=S.cats.map(x=>`<option value="${x.id}" data-cat="${x.id}"${x.id===c.id?' selected':''}>${esc(x.name)}</option>`).join('');
   const nTx=txCount(c.subs.map(s=>s.id));
   const nRec=S.rec.filter(r=>c.subs.some(s=>s.id===r.sub)).length;
   let o=`<article class="ccard"><div class="chead"><input class="txt" data-act="catname" data-id="${c.id}" value="${esc(c.name)}" aria-label="Navn på hovedkategori" autocomplete="off"><span class="ctrl"><button class="ib" data-act="catup" data-id="${c.id}" aria-label="Flytt opp" title="Flytt opp"${i===0?' disabled':''}>↑</button><button class="ib" data-act="catdown" data-id="${c.id}" aria-label="Flytt ned" title="Flytt ned"${i===n-1?' disabled':''}>↓</button>${askBtn('dc:'+c.id,'Slett kategori','Slette «'+esc(c.name)+'»'+(nTx?' og '+nTx+' poster':'')+(nRec?' og '+nRec+' gjentakende':'')+' og budsjettet?','delcat','data-id="'+c.id+'"','ib')}</span></div><ul class="subs">`;
@@ -1022,9 +1082,9 @@ function catCard(c,i,n){
     const nS=txCount([s.id]);
     o+=`<li class="subrow"><input class="txt" data-act="subname" data-id="${s.id}" value="${esc(s.name)}" aria-label="Navn på underkategori" autocomplete="off">`+
     (c.type==='exp'?`<select data-act="subkind" data-id="${s.id}" aria-label="Drift eller investering"><option value="drift"${s.kind==='drift'?' selected':''}>Drift</option><option value="invest"${s.kind==='invest'?' selected':''}>Investering</option></select>`:'')+
-    `<select data-act="submove" data-id="${s.id}" aria-label="Flytt til hovedkategori">${opts}</select><span class="ctrl"><button class="ib" data-act="subup" data-id="${s.id}" aria-label="Flytt opp" title="Flytt opp"${j===0?' disabled':''}>↑</button><button class="ib" data-act="subdown" data-id="${s.id}" aria-label="Flytt ned" title="Flytt ned"${j===c.subs.length-1?' disabled':''}>↓</button>${askBtn('ds:'+s.id,'Slett underkategori','Slette «'+esc(s.name)+'»'+(nS?' og '+nS+' poster':'')+'?','delsub','data-id="'+s.id+'"','ib')}</span></li>`;
+    `<span class="ctrl"><button class="ib" data-act="subup" data-id="${s.id}" aria-label="Flytt opp" title="Flytt opp"${j===0?' disabled':''}>↑</button><button class="ib" data-act="subdown" data-id="${s.id}" aria-label="Flytt ned" title="Flytt ned"${j===c.subs.length-1?' disabled':''}>↓</button>${askBtn('ds:'+s.id,'Slett underkategori','Slette «'+esc(s.name)+'»'+(nS?' og '+nS+' poster':'')+'?','delsub','data-id="'+s.id+'"','ib')}</span></li>`;
   });
-  o+=`</ul><div class="addsub"><input class="txt" id="ns-${c.id}" data-act="newsub" data-id="${c.id}" placeholder="Ny underkategori" aria-label="Ny underkategori i ${esc(c.name)}" autocomplete="off"><button class="btn" data-act="addsub" data-id="${c.id}">Legg til</button></div></article>`;
+  o+=`</ul><div class="addsub"><input class="txt" id="ns-${c.id}" data-act="newsub" data-id="${c.id}" placeholder="Ny underkategori" aria-label="Ny underkategori i ${esc(c.name)}" autocomplete="off"><button class="btn" data-act="addsub" data-id="${c.id}">Legg til</button></div><div class="catlink"><button class="lnk" data-act="opencat" data-id="${c.id}">Se alle poster i kategorien ›</button></div></article>`;
   return o;
 }
 
@@ -1034,7 +1094,7 @@ function render(){
   $('#yearLbl').textContent=S.year;
   $('#yearnav').hidden=ui.tab==='reg'||ui.tab==='cats'||ui.tab==='rec';
   $('#banner').innerHTML=bannerHTML();
-  $('#view').innerHTML=ui.tab==='reg'?viewReg():ui.tab==='month'?viewMonth():ui.tab==='year'?viewYear():ui.tab==='rec'?viewRec():viewCats();
+  $('#view').innerHTML=ui.tab==='reg'?viewReg():ui.tab==='month'?viewMonth():ui.tab==='year'?viewYear():ui.tab==='rec'?viewRec():ui.tab==='cat'?viewCat():viewCats();
   refresh();
   if(ui.focus){const el=$(ui.focus);ui.focus=null;if(el){el.focus();if(el.select)el.select();}}
 }
@@ -1079,6 +1139,7 @@ root.addEventListener('click',e=>{
     case 'yearprev':case 'yearnext':S.year+=a==='yearnext'?1:-1;ui.month=defMonth();ui.confirm=null;render();touch();break;
     case 'month':ui.month=+d.m;ui.confirm=null;render();break;
     case 'layer':ui.layer=d.l;render();break;
+    case 'opencat':ui.tab='cat';ui.catId=d.id;ui.confirm=null;ui.editTx=null;ui.editRec=null;window.scrollTo(0,0);render();break;
     case 'toggle':ui.collapsed[d.id]=!ui.collapsed[d.id];render();break;
     case 'ask':ui.confirm=d.key;render();break;
     case 'cancel':ui.confirm=null;render();break;
@@ -1217,11 +1278,10 @@ root.addEventListener('change',e=>{
     const loc=subLoc(t.dataset.id);if(!loc)return;const n=t.value.trim();
     if(!n){t.value=loc.s.name;return;}
     loc.s.name=n;touch();
+  }else if(a==='catsel'){
+    ui.catId=t.value;render();
   }else if(a==='subkind'){
     const loc=subLoc(t.dataset.id);if(loc){loc.s.kind=t.value==='invest'?'invest':'drift';touch();}
-  }else if(a==='submove'){
-    const loc=subLoc(t.dataset.id),dest=catById(t.value);
-    if(loc&&dest&&dest!==loc.c){loc.c.subs.splice(loc.i,1);dest.subs.push(loc.s);render();touch();}
   }
 });
 root.addEventListener('focusin',e=>{
