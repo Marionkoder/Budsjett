@@ -309,6 +309,7 @@ const txYear=t=>+t.d.slice(0,4);
 const txMonth=t=>+t.d.slice(5,7)-1;
 
 /* ---------- state ---------- */
+const EVEN=['Dagligvarer','Strøm','Hurtiglading','Hjemmelading','Renter'];
 function defaults(){
   // [navn, type, [[underkategori, kind, månedsbudsjett]]]
   const D='drift',I='invest';
@@ -328,10 +329,10 @@ function defaults(){
     ['Utstyr','exp',[['Vesker og bager',I,0],['Håndarbeidsutstyr',I,0],['Garn, tråd og stoff',D,0]]],
     ['Sparing','sav',[['Bufferkonto',D,0],['Pensjonssparing',D,0],['Feriekonto',D,0]]]
   ];
-  const st={v:2,mig:20,year:2027,cats:[],data:{'2027':{}},tx:[],rec:[]};
+  const st={v:2,mig:21,year:2027,cats:[],data:{'2027':{}},tx:[],rec:[]};
   spec.forEach(([name,type,subs])=>{
     st.cats.push({id:uid(),name,type,subs:subs.map(([n,kind,b])=>{
-      const id=uid();if(b)st.data['2027'][id]={b:flat(b)};return{id,name:n,kind};
+      const id=uid();if(b)st.data['2027'][id]={b:flat(b)};return{id,name:n,kind,fc:EVEN.includes(n)?'jevn':'spor'};
     })});
   });
   return st;
@@ -356,7 +357,7 @@ function norm(st){
   st.data=data;delete st.example;
   st.cats.forEach(c=>{
     c.subs=Array.isArray(c.subs)?c.subs:[];c.type=c.type==='inc'?'inc':c.type==='sav'?'sav':'exp';delete c.color;
-    c.subs.forEach(s=>{s.kind=s.kind==='invest'?'invest':'drift';});
+    c.subs.forEach(s=>{s.kind=s.kind==='invest'?'invest':'drift';s.fc=s.fc==='jevn'?'jevn':'spor';});
   });
   if(!st.mig||st.mig<3){
     // Engangsmigrering: «Boliglån» deles i Renter (drift) og Avdrag (investering), budsjettet halvt på hver
@@ -540,6 +541,11 @@ function norm(st){
     // Engangsmigrering: «Kluter, håndklær og svamper» heter nå «Husholdningsvarer» (drift)
     st.mig=20;
     st.cats.forEach(c=>c.subs.forEach(sb=>{if(sb.name==='Kluter, håndklær og svamper'){sb.name='Husholdningsvarer';sb.kind='drift';}}));
+  }
+  if(st.mig<21){
+    // Engangsmigrering: forbrukstype (jevnt/sporadisk) per underkategori for prognosen
+    st.mig=21;
+    st.cats.forEach(c=>{if(c.type==='exp')c.subs.forEach(sb=>{sb.fc=(sb.kind==='drift'&&EVEN.includes(sb.name))?'jevn':'spor';});});
   }
   return st;
 }
@@ -780,7 +786,8 @@ function txList(list){
 /* ---------- prognose (burn rate) ---------- */
 const ymStr=(y,m)=>y+'-'+pad(m+1);
 const daysIn=(y,m)=>new Date(y,m+1,0).getDate();
-const isVarSub=s=>s.kind==='drift'&&!S.rec.some(r=>r.sub===s.id);
+const subClass=s=>s.kind==='invest'?'invest':S.rec.some(r=>r.sub===s.id)?'fixed':(s.fc==='jevn'?'even':'spor');
+const isVarSub=s=>subClass(s)==='even';
 function upcomingRec(subId,y,m,t0){
   const ym=ymStr(y,m);let sum=0;
   S.rec.forEach(r=>{
@@ -793,25 +800,31 @@ function upcomingRec(subId,y,m,t0){
   });
   return sum;
 }
+const FLOOR=.8;
 function fcMonth(y,m){
   const t0=today(),ty=+t0.slice(0,4),tm=+t0.slice(5,7)-1,td=+t0.slice(8,10);
   const cmp=y*12+m-(ty*12+tm);
   const N=daysIn(y,m);
-  const o={state:cmp<0?'past':cmp>0?'future':'current',N,day:cmp===0?td:(cmp<0?N:0),cats:[],B:0,A:0,F:0,varA:0,varB:0};
+  const o={state:cmp<0?'past':cmp>0?'future':'current',N,day:cmp===0?td:(cmp<0?N:0),cats:[],subF:{},B:0,A:0,F:0,FM:0,varA:0,varB:0};
   S.cats.forEach(c=>{
     if(c.type!=='exp')return;
     let b=0,a=0,f=0;
     c.subs.forEach(s=>{
-      const sb=val(y,s.id,'b',m),sa=val(y,s.id,'a',m);
+      const sb=val(y,s.id,'b',m),sa=val(y,s.id,'a',m),cl=subClass(s);
       b+=sb;a+=sa;
-      let sf=sa;
+      let sf=sa,sm=sa;
       if(o.state==='current'){
-        if(s.kind==='invest')sf=sa;
-        else if(S.rec.some(r=>r.sub===s.id))sf=sa+upcomingRec(s.id,y,m,t0);
-        else sf=o.day>0?sa/o.day*N:sa;
+        if(cl==='fixed'){sf=sa+upcomingRec(s.id,y,m,t0);sm=sf;}
+        else if(cl==='spor'){sf=Math.max(sa,sb);sm=sf;}
+        else if(cl==='even'){
+          const left=N-o.day,bp=sb/N,ap=o.day>0?sa/o.day:0,w=Math.min(1,o.day/10);
+          sf=sa+left*Math.max(FLOOR*bp,w*ap+(1-w)*bp);
+          sm=Math.max(sa,sb);
+        }
       }
-      f+=sf;
-      if(isVarSub(s)){o.varA+=sa;o.varB+=sb;}
+      o.subF[s.id]={f:sf,m:sm};
+      f+=sf;o.FM+=sm;
+      if(cl==='even'){o.varA+=sa;o.varB+=sb;}
     });
     o.cats.push({name:c.name,b,a,f});o.B+=b;o.A+=a;o.F+=f;
   });
@@ -822,31 +835,34 @@ function fcMonth(y,m){
 }
 function fcYear(y){
   const t0=today(),ty=+t0.slice(0,4),tm=+t0.slice(5,7)-1;
-  const o={state:y<ty?'past':y>ty?'future':'current',B:0,A:0,F:0,ytdA:0};
-  const expSubs=[];S.cats.forEach(c=>{if(c.type==='exp')c.subs.forEach(s=>expSubs.push(s));});
-  const rows=[];
-  for(let m=0;m<12;m++){
-    let a=0,b=0,va=0,vb=0;
-    expSubs.forEach(s=>{const sa=val(y,s.id,'a',m),sb=val(y,s.id,'b',m);a+=sa;b+=sb;if(isVarSub(s)){va+=sa;vb+=sb;}});
-    rows.push({a,b,va,vb});o.B+=b;
-  }
-  if(o.state!=='current'){rows.forEach(r=>{o.A+=r.a;});return o;}
-  let cvA=0,cvB=0;
-  for(let m=0;m<tm;m++){cvA+=rows[m].va;cvB+=rows[m].vb;}
+  const o={state:y<ty?'past':y>ty?'future':'current',B:0,A:0,F:0,FM:0,ytdA:0,jA:0,jB:0};
+  const subs=[];S.cats.forEach(c=>{if(c.type==='exp')c.subs.forEach(s=>subs.push(s));});
+  subs.forEach(s=>{for(let m=0;m<12;m++){o.B+=val(y,s.id,'b',m);if(o.state!=='current')o.A+=val(y,s.id,'a',m);}});
+  if(o.state!=='current')return o;
   const fm=fcMonth(y,tm);
-  let tempo=1;
-  if(tm>0&&cvB>0)tempo=cvA/cvB;
-  else if(tm===0&&fm.day>=10&&fm.varB>0)tempo=(fm.varA/fm.day*fm.N)/fm.varB;
-  tempo=Math.min(2,Math.max(.5,tempo));
-  o.tempo=tempo;
-  for(let m=0;m<12;m++){
-    if(m<tm){o.F+=rows[m].a;o.ytdA+=rows[m].a;}
-    else if(m===tm){o.F+=fm.F;o.ytdA+=rows[m].a;}
-    else o.F+=rows[m].b+(tempo-1)*rows[m].vb;
-  }
-  o.elapsed=tm+fm.day/fm.N;
-  o.burn=o.elapsed>0?o.ytdA/o.elapsed:0;
-  o.timePct=o.elapsed/12;
+  const elapsed=tm+fm.day/fm.N;
+  subs.forEach(s=>{
+    const cl=subClass(s);
+    const a=[],b=[];for(let m=0;m<12;m++){a.push(val(y,s.id,'a',m));b.push(val(y,s.id,'b',m));}
+    let done=0,bud=0;
+    for(let m=0;m<tm;m++){done+=a[m];bud+=b[m];}
+    const act=done+a[tm];bud+=b[tm]*fm.day/fm.N;
+    o.ytdA+=act;
+    let F=done+fm.subF[s.id].f,FM=done+fm.subF[s.id].m;
+    for(let m=tm+1;m<12;m++){
+      if(cl==='even'){
+        let rest;
+        if(bud>0){const w=Math.min(1,elapsed/3),r=Math.min(3,Math.max(FLOOR,w*(act/bud)+(1-w)));rest=b[m]*r;}
+        else rest=elapsed>0?act/elapsed:0;
+        F+=rest;FM+=b[m];
+      }else{F+=b[m];FM+=b[m];}
+    }
+    o.F+=F;o.FM+=FM;
+    if(cl==='even'){o.jA+=act;o.jB+=bud;}
+  });
+  o.elapsed=elapsed;
+  o.burn=elapsed>0?o.ytdA/elapsed:0;
+  o.timePct=elapsed/12;
   return o;
 }
 const kr=v=>fmt.format(Math.round(v));
@@ -861,11 +877,12 @@ function fcMonthInner(){
   const over=o.cats.filter(c=>c.f>c.b+0.5&&c.f>0).sort((a,b)=>(b.f-b.b)-(a.f-a.b));
   const verdict=(!o.B&&!o.F)?'Ingen budsjett eller forbruk å vurdere ennå.':diff>0?`På dette tempoet ender du ${kr(diff)} kr over budsjett.`:`På dette tempoet ender du ${kr(-diff)} kr under budsjett.`;
   return `<div class="fch">Prognose · dag ${o.day} av ${o.N}</div><div class="fcg">`+
-    `<div><div class="sl">Burn rate</div><div class="sv2">${money(Math.round(o.burn))}<span> kr/dag</span></div><div class="ss">variabelt forbruk</div></div>`+
+    `<div><div class="sl">Burn rate</div><div class="sv2">${money(Math.round(o.burn))}<span> kr/dag</span></div><div class="ss">jevnt forbruk</div></div>`+
     `<div><div class="sl">Anslått utgifter</div><div class="sv2${diff>0?' neg':''}">${money(Math.round(o.F))}</div><div class="ss">budsjett ${money(o.B)}</div></div>`+
-    `<div><div class="sl">Daglig ramme</div><div class="sv2">${o.left>0&&o.varB>0?money(Math.round(o.allow)):'–'}<span> kr/dag</span></div><div class="ss">${o.left} dager igjen</div></div></div>`+
+    `<div><div class="sl">Daglig ramme</div><div class="sv2">${o.left>0&&o.varB>0?money(Math.round(o.allow)):'–'}<span> kr/dag</span></div><div class="ss">jevnt forbruk, ${o.left} dager igjen</div></div></div>`+
     `<p class="fcv${diff>0?' neg':''}">${verdict}</p>`+
-    (over.length?`<p class="fcl">På vei over: ${over.map(c=>`${esc(c.name)} ${kr(c.f)} av ${kr(c.b)} kr`).join(' · ')}</p>`:'');
+    (over.length?`<p class="fcl">På vei over: ${over.map(c=>`${esc(c.name)} ${kr(c.f)} av ${kr(c.b)} kr`).join(' · ')}</p>`:'')+
+    (o.F-o.FM>0.5?`<p class="fcn">Hvis du holder budsjettet for jevnt forbruk resten av måneden: ${kr(o.FM)} kr.</p>`:'');
 }
 function fcYearInner(){
   const o=fcYear(S.year);
@@ -882,12 +899,13 @@ function fcYearInner(){
     `<div><div class="sl">Burn rate</div><div class="sv2">${money(Math.round(o.burn))}<span> kr/mnd</span></div><div class="ss">snitt hittil i år</div></div>`+
     `<div><div class="sl">Anslått årsutgifter</div><div class="sv2${diff>0?' neg':''}">${money(Math.round(o.F))}</div><div class="ss">budsjett ${money(o.B)}</div></div></div>`+
     `<p class="fcv${diff>0?' neg':''}">${verdict}</p>`+
-    `<p class="fcn">Variabelt forbruk ligger på ${Math.round(o.tempo*100)}% av budsjettet i gjennomførte måneder.</p>`;
+    (o.jB>0?`<p class="fcn">Jevnt forbruk ligger på ${Math.round(o.jA/o.jB*100)}% av budsjettet hittil.</p>`:'')+
+    (o.F-o.FM>0.5?`<p class="fcn">Hvis du holder budsjettet for jevnt forbruk resten av året: ${kr(o.FM)} kr.</p>`:'');
 }
 function fcWrap(kind){
   const how=kind==='m'
-    ?'Faste poster (de med en gjentakende regel) regnes som det som er brukt pluss det som kommer senere i måneden. Variabelt forbruk (drift uten gjentakende regel) regnes som burn rate per dag ganger antall dager i måneden. Investeringer fremskrives ikke, bare det du har registrert teller. Daglig ramme er det som er igjen av det variable budsjettet, delt på dagene som gjenstår.'
-    :'Gjennomførte måneder telles som registrert. Inneværende måned bruker månedsprognosen. Resten av året bruker budsjettet, der variabelt forbruk justeres etter hvor mye av det variable budsjettet du har brukt i gjennomførte måneder (begrenset til mellom 50 og 200 prosent). Burn rate er brukt beløp delt på antall måneder som har gått.';
+    ?'Jevnt forbruk (for eksempel mat og strøm): det du har brukt, pluss dagens tempo for resten av måneden. De første ti dagene blandes tempoet med budsjettert tempo, og tempoet regnes aldri som mer enn 20 % under budsjettet, så en billig start ikke gir falsk trygghet. Sporadisk forbruk (for eksempel klær og gaver) fremskrives ikke etter tempo. Det regnes som det du har brukt, men minst månedsbudsjettet. Faste poster (med gjentakende regel) er det som er brukt pluss det som kommer senere i måneden. Investeringer fremskrives ikke, bare det du har registrert teller. Daglig ramme er det som er igjen av budsjettet for jevnt forbruk, delt på dagene som gjenstår. Linjen «Hvis du holder budsjettet» viser hva det blir hvis du bruker nøyaktig budsjettet for jevnt forbruk resten av måneden.'
+    :'Gjennomførte måneder telles som registrert, og inneværende måned bruker månedsprognosen. For resten av året bruker jevnt forbruk budsjettet for hver enkelt måned (så vinterbudsjettet gjelder om vinteren), skalert med hvor mye over eller under budsjett du har ligget hittil på posten. Skaleringen går aldri under 80 % og aldri over 300 %, og blandes mot 100 % de første tre månedene. Poster uten budsjett bruker snittet per måned. Sporadisk forbruk, faste poster og investeringer bruker budsjettet. Linjen «Hvis du holder budsjettet» viser hva det blir hvis du bruker nøyaktig budsjettet for jevnt forbruk. Burn rate er brukt beløp delt på antall måneder som har gått.';
   return `<section class="card fc"><div id="fc"></div><details class="fcd"><summary>Slik regnes det ut</summary><p>${how}</p></details></section>`;
 }
 
@@ -1105,7 +1123,7 @@ function viewCats(){
     return `<section class="cg"><h3 class="gl">${title}</h3>${cats.map((c,i)=>catCard(c,i,cats.length)).join('')}<button class="btn add" data-act="addcat" data-type="${type}">+ ${addLabel}</button></section>`;
   };
   return `<p class="lead sm">Endre navn og rekkefølge, eller legg til og fjern kategorier og underkategorier. Endringene gjelder alle år.</p>`+
-    `<p class="lead sm"><strong>Drift</strong> er løpende forbruk som mat, strøm og lån. <strong>Investering</strong> er anskaffelser som varer lenge eller bygger verdi, for eksempel utstyr, oppussing og møbler. Velg per underkategori. Begge teller med i «Til overs». <strong>Sparing</strong> er penger du setter av, og regnes verken som drift eller investering. Den trekkes også fra «Til overs».</p>`+
+    `<p class="lead sm"><strong>Drift</strong> er løpende forbruk som mat, strøm og lån. <strong>Investering</strong> er anskaffelser som varer lenge eller bygger verdi, for eksempel utstyr, oppussing og møbler. Velg per underkategori. For drift velger du også om forbruket er <strong>jevnt</strong> (mat, strøm, lading) eller <strong>sporadisk</strong> (klær, gaver, helse). Det styrer prognosen. Begge teller med i «Til overs». <strong>Sparing</strong> er penger du setter av, og regnes verken som drift eller investering. Den trekkes også fra «Til overs».</p>`+
     sec('exp','Utgifter','Ny hovedkategori')+sec('sav','Sparing','Ny sparekategori')+sec('inc','Inntekter','Ny inntektskategori')+backupHTML();
 }
 function catCard(c,i,n){
@@ -1116,6 +1134,7 @@ function catCard(c,i,n){
     const nS=txCount([s.id]);
     o+=`<li class="subrow"><input class="txt" data-act="subname" data-id="${s.id}" value="${esc(s.name)}" aria-label="Navn på underkategori" autocomplete="off">`+
     (c.type==='exp'?`<select data-act="subkind" data-id="${s.id}" aria-label="Drift eller investering"><option value="drift"${s.kind==='drift'?' selected':''}>Drift</option><option value="invest"${s.kind==='invest'?' selected':''}>Investering</option></select>`:'')+
+    (c.type==='exp'&&s.kind==='drift'?`<select data-act="subfc" data-id="${s.id}" aria-label="Jevnt eller sporadisk forbruk"><option value="spor"${s.fc!=='jevn'?' selected':''}>Sporadisk</option><option value="jevn"${s.fc==='jevn'?' selected':''}>Jevnt forbruk</option></select>`:'')+
     `<span class="ctrl"><button class="ib" data-act="subup" data-id="${s.id}" aria-label="Flytt opp" title="Flytt opp"${j===0?' disabled':''}>↑</button><button class="ib" data-act="subdown" data-id="${s.id}" aria-label="Flytt ned" title="Flytt ned"${j===c.subs.length-1?' disabled':''}>↓</button>${askBtn('ds:'+s.id,'Slett underkategori','Slette «'+esc(s.name)+'»'+(nS?' og '+nS+' poster':'')+'?','delsub','data-id="'+s.id+'"','ib')}</span></li>`;
   });
   o+=`</ul><div class="addsub"><input class="txt" id="ns-${c.id}" data-act="newsub" data-id="${c.id}" placeholder="Ny underkategori" aria-label="Ny underkategori i ${esc(c.name)}" autocomplete="off"><button class="btn" data-act="addsub" data-id="${c.id}">Legg til</button></div><div class="catlink"><button class="lnk" data-act="opencat" data-id="${c.id}">Se alle poster i kategorien ›</button></div></article>`;
@@ -1219,7 +1238,7 @@ root.addEventListener('click',e=>{
       const inp=$('#ns-'+d.id);const name=inp.value.trim();
       if(!name){inp.focus();break;}
       const c=catById(d.id);const last=c.subs[c.subs.length-1];
-      c.subs.push({id:uid(),name,kind:last?last.kind:'drift'});ui.focus='#ns-'+d.id;render();touch();break;
+      c.subs.push({id:uid(),name,kind:last?last.kind:'drift',fc:'spor'});ui.focus='#ns-'+d.id;render();touch();break;
     }
     case 'catup':case 'catdown':{
       const c=catById(d.id);const list=S.cats.filter(x=>x.type===c.type);
@@ -1315,7 +1334,9 @@ root.addEventListener('change',e=>{
   }else if(a==='catsel'){
     ui.catId=t.value;render();
   }else if(a==='subkind'){
-    const loc=subLoc(t.dataset.id);if(loc){loc.s.kind=t.value==='invest'?'invest':'drift';touch();}
+    const loc=subLoc(t.dataset.id);if(loc){loc.s.kind=t.value==='invest'?'invest':'drift';render();touch();}
+  }else if(a==='subfc'){
+    const loc=subLoc(t.dataset.id);if(loc){loc.s.fc=t.value==='jevn'?'jevn':'spor';touch();}
   }
 });
 root.addEventListener('focusin',e=>{
